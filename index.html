@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Editor Musical</title>
+
+<style>
+
+body{
+    font-family: Arial, sans-serif;
+    background:#f2f2f2;
+    text-align:center;
+    margin:20px;
+}
+
+h1{
+    color:#222;
+}
+
+select,button{
+    padding:10px;
+    margin:5px;
+    border:none;
+    border-radius:8px;
+}
+
+button{
+    background:#2563eb;
+    color:white;
+    cursor:pointer;
+}
+
+button:hover{
+    opacity:.9;
+}
+
+.grupo{
+    margin:15px 0;
+}
+
+#partitura{
+    width:90%;
+    min-height:120px;
+    margin:auto;
+    background:white;
+    border-radius:10px;
+    border:2px solid #ccc;
+    padding:20px;
+    font-size:22px;
+    text-align:left;
+}
+
+.nota{
+    display:inline-block;
+    margin:5px;
+    padding:5px 10px;
+    background:#e5e7eb;
+    border-radius:6px;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>CREADOR MUSIC
+    IOSEPHUS
+</h1>
+
+<h2>Instrumento</h2>
+
+<select id="instrumento">
+    <option value="triangle">🎺 Trompeta</option>
+    <option value="sine">🎹 Piano</option>
+</select>
+
+<h2>Figura Musical</h2>
+
+<select id="duracion">
+    <option value="250">♪ Corchea</option>
+    <option value="500" selected>♩ Negra</option>
+    <option value="1000">𝅗𝅥 Blanca</option>
+    <option value="2000">𝅝 Redonda</option>
+</select>
+
+<h2>Escala 1 (Octava 4)</h2>
+
+<div class="grupo">
+
+<button onclick="agregarNota('C4')">Do</button>
+<button onclick="agregarNota('C#4')">Do#</button>
+
+<button onclick="agregarNota('D4')">Re</button>
+<button onclick="agregarNota('D#4')">Re#</button>
+
+<button onclick="agregarNota('E4')">Mi</button>
+
+<button onclick="agregarNota('F4')">Fa</button>
+<button onclick="agregarNota('F#4')">Fa#</button>
+
+<button onclick="agregarNota('G4')">Sol</button>
+<button onclick="agregarNota('G#4')">Sol#</button>
+
+<button onclick="agregarNota('A4')">La</button>
+<button onclick="agregarNota('A#4')">La#</button>
+
+<button onclick="agregarNota('B4')">Si</button>
+
+</div>
+
+<h2>Escala 2 (Octava 5)</h2>
+
+<div class="grupo">
+
+<button onclick="agregarNota('C5')">Do</button>
+<button onclick="agregarNota('C#5')">Do#</button>
+
+<button onclick="agregarNota('D5')">Re</button>
+<button onclick="agregarNota('D#5')">Re#</button>
+
+<button onclick="agregarNota('E5')">Mi</button>
+
+<button onclick="agregarNota('F5')">Fa</button>
+<button onclick="agregarNota('F#5')">Fa#</button>
+
+<button onclick="agregarNota('G5')">Sol</button>
+<button onclick="agregarNota('G#5')">Sol#</button>
+
+<button onclick="agregarNota('A5')">La</button>
+<button onclick="agregarNota('A#5')">La#</button>
+
+<button onclick="agregarNota('B5')">Si</button>
+
+</div>
+
+<h2>Partitura</h2>
+
+<div id="partitura"></div>
+
+<br>
+
+<button onclick="reproducir()">▶ Reproducir</button>
+<button onclick="limpiar()">🗑 Limpiar</button>
+
+<script>
+
+const notas = [];
+
+const frecuencias = {
+
+C4:261.63,
+"C#4":277.18,
+D4:293.66,
+"D#4":311.13,
+E4:329.63,
+F4:349.23,
+"F#4":369.99,
+G4:392.00,
+"G#4":415.30,
+A4:440.00,
+"A#4":466.16,
+B4:493.88,
+
+C5:523.25,
+"C#5":554.37,
+D5:587.33,
+"D#5":622.25,
+E5:659.25,
+F5:698.46,
+"F#5":739.99,
+G5:783.99,
+"G#5":830.61,
+A5:880.00,
+"A#5":932.33,
+B5:987.77
+
+};
+
+function simboloFigura(ms){
+
+    if(ms == 250) return "♪";
+    if(ms == 500) return "♩";
+    if(ms == 1000) return "𝅗𝅥";
+    return "𝅝";
+}
+
+function agregarNota(nota){
+
+    const duracion =
+    parseInt(document.getElementById("duracion").value);
+
+    notas.push({
+        nota,
+        duracion
+    });
+
+    const simbolo =
+    simboloFigura(duracion);
+
+    document.getElementById("partitura").innerHTML +=
+    `<span class="nota">${simbolo} ${nota}</span>`;
+}
+
+function limpiar(){
+
+    notas.length = 0;
+
+    document.getElementById("partitura").innerHTML = "";
+}
+
+function tocarNota(freq,duracion){
+
+    const audio =
+    new AudioContext();
+
+    const osc =
+    audio.createOscillator();
+
+    const gain =
+    audio.createGain();
+
+    osc.frequency.value = freq;
+
+    osc.type =
+    document.getElementById("instrumento").value;
+
+    osc.connect(gain);
+    gain.connect(audio.destination);
+
+    gain.gain.setValueAtTime(
+        0.25,
+        audio.currentTime
+    );
+
+    osc.start();
+
+    setTimeout(()=>{
+        osc.stop();
+        audio.close();
+    },duracion);
+}
+
+function reproducir(){
+
+    let tiempo = 0;
+
+    notas.forEach(item=>{
+
+        setTimeout(()=>{
+
+            tocarNota(
+                frecuencias[item.nota],
+                item.duracion
+            );
+
+        },tiempo);
+
+        tiempo += item.duracion;
+
+    });
+
+}
+
+</script>
+
+</body>
+</html>
